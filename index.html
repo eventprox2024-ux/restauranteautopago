@@ -2,486 +2,801 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Contrato CashlessSAI — Firma digital</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/signature_pad/4.1.7/signature_pad.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Punto de Pago Restaurantes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --azul: #1d4ed8;
-    --azul-oscuro: #1e3a8a;
-    --gris-borde: #d7dbe3;
-    --gris-fondo: #f5f6f8;
-    --texto: #1f2430;
-    --verde: #16a34a;
-  }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    font-family: "Segoe UI", Calibri, Arial, sans-serif;
-    background: var(--gris-fondo);
-    color: var(--texto);
-    line-height: 1.55;
-  }
-  header {
-    background: linear-gradient(135deg, var(--azul-oscuro), var(--azul));
-    color: white;
-    padding: 32px 20px;
-    text-align: center;
-  }
-  header h1 { margin: 0 0 6px; font-size: 1.6rem; }
-  header p { margin: 0; opacity: .9; font-size: .95rem; }
-  main {
-    max-width: 860px;
-    margin: -20px auto 60px;
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 6px 24px rgba(0,0,0,.08);
-    padding: 40px;
-  }
-  h2 {
-    color: var(--azul-oscuro);
-    border-bottom: 2px solid var(--gris-borde);
-    padding-bottom: 6px;
-    margin-top: 34px;
-    font-size: 1.15rem;
-  }
-  .parties {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin: 18px 0;
-  }
-  .party {
-    background: var(--gris-fondo);
-    border: 1px solid var(--gris-borde);
-    border-radius: 8px;
-    padding: 14px 16px;
-    font-size: .92rem;
-  }
-  .party b { display: block; margin-bottom: 4px; color: var(--azul-oscuro); }
-  ul { padding-left: 20px; }
-  li { margin-bottom: 6px; }
-  .clausula p { text-align: justify; font-size: .95rem; }
-  .aviso {
-    background: #fff8e6;
-    border: 1px solid #f2d888;
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: .85rem;
-    margin: 18px 0;
-  }
-  .firma-section {
-    margin-top: 40px;
-    border-top: 3px solid var(--gris-borde);
-    padding-top: 24px;
-  }
-  .firma-box {
-    border: 1px solid var(--gris-borde);
-    border-radius: 8px;
-    padding: 18px;
-    margin-bottom: 20px;
-    background: #fafbfc;
-  }
-  .firma-box h3 { margin-top: 0; color: var(--azul-oscuro); font-size: 1rem; }
-  canvas.pad {
-    width: 100%;
-    height: 160px;
-    border: 1.5px dashed #98a2b3;
-    border-radius: 6px;
-    background: white;
-    touch-action: none;
-  }
-  .firma-actions { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
-  button {
-    cursor: pointer;
-    border: none;
-    border-radius: 6px;
-    padding: 9px 16px;
-    font-size: .88rem;
-    font-weight: 600;
-  }
-  .btn-secundario { background: #e5e7eb; color: #374151; }
-  .btn-secundario:hover { background: #d1d5db; }
-  .btn-primario { background: var(--azul); color: white; }
-  .btn-primario:hover { background: var(--azul-oscuro); }
-  .btn-final {
-    background: var(--verde);
-    color: white;
-    width: 100%;
-    padding: 14px;
-    font-size: 1rem;
-    margin-top: 10px;
-  }
-  .btn-final:disabled { background: #9ca3af; cursor: not-allowed; }
-  .estado {
-    font-size: .85rem;
-    margin-top: 6px;
-    font-weight: 600;
-  }
-  .estado.ok { color: var(--verde); }
-  .estado.pendiente { color: #b45309; }
-  input[type=text] {
-    width: 100%;
-    padding: 9px 10px;
-    border: 1px solid var(--gris-borde);
-    border-radius: 6px;
-    font-size: .9rem;
-    margin-top: 6px;
-  }
-  label { font-size: .85rem; font-weight: 600; color: #374151; }
-  footer {
-    text-align: center;
-    font-size: .78rem;
-    color: #6b7280;
-    padding-bottom: 40px;
-  }
-  #confirmacion {
-    display: none;
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
-    border-radius: 8px;
-    padding: 16px;
-    margin-top: 18px;
-    text-align: center;
-  }
-  #confirmacion.show { display: block; }
+:root{
+  --void:#08050f; --panel:#140b28; --panel-2:#1a1036; --line:#3d2a6b; --line-soft:rgba(157,110,255,.28);
+  --pink:#ff2ee0; --cyan:#00f0ff; --violet:#9d4dff; --lime:#c6ff3a; --amber:#ffb020; --gold:#ffd54d;
+  --text:#f3eeff; --text-dim:#a999d6; --ok:#39ffb0; --warn:#ffe14d; --bad:#ff3d6e;
+  --radius:16px; --shadow:0 20px 60px -18px rgba(0,0,0,.75);
+  --glow-pink:0 0 18px rgba(255,46,224,.55), 0 0 40px rgba(255,46,224,.2);
+  --glow-cyan:0 0 18px rgba(0,240,255,.55), 0 0 40px rgba(0,240,255,.2);
+  --glow-violet:0 0 20px rgba(157,77,255,.55), 0 0 46px rgba(157,77,255,.22);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{margin:0; padding:0; min-height:100%;}
+body{font-family:'Inter',sans-serif; color:var(--text); background:var(--void); min-height:100vh;}
+h1,h2,h3,.display{font-family:'Orbitron',sans-serif; font-weight:700; letter-spacing:.02em;}
+button{font-family:inherit;}
+a{color:inherit;}
+#bg-fx{position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 12% 8%, rgba(255,46,224,.24), transparent 60%),
+    radial-gradient(ellipse 55% 45% at 92% 12%, rgba(0,240,255,.18), transparent 60%),
+    radial-gradient(ellipse 60% 55% at 50% 105%, rgba(157,77,255,.26), transparent 60%),
+    linear-gradient(180deg, #060410, #0b0718 55%, #060410);}
+#app{position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column;}
+.hide{display:none !important;}
+.topbar{display:flex; align-items:center; gap:14px; padding:14px 20px;
+  background:linear-gradient(180deg, rgba(8,5,15,.9), rgba(8,5,15,.45)); backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line-soft); position:sticky; top:0; z-index:50;}
+.topbar .brand b{font-family:'Orbitron',sans-serif; font-size:17px; font-weight:800; letter-spacing:.06em;
+  background:linear-gradient(90deg,var(--pink),var(--cyan)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.topbar .brand span{font-size:10px; color:var(--text-dim); letter-spacing:.2em; text-transform:uppercase; font-family:'Rajdhani',sans-serif; display:block;}
+.topbar .spacer{flex:1;}
+.btn-logout{border:1px solid var(--line-soft); background:var(--panel); color:var(--text-dim); padding:7px 13px; border-radius:9px; cursor:pointer; font-size:12.5px;}
+.btn-logout:hover{color:#fff; border-color:var(--cyan); box-shadow:var(--glow-cyan);}
+main{flex:1; padding:24px 16px 60px; max-width:1100px; margin:0 auto; width:100%; position:relative; z-index:1;}
+.card{background:linear-gradient(160deg, var(--panel), var(--panel-2)); border:1px solid var(--line-soft); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow);}
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+@media(max-width:900px){.grid-3{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+.field{margin-bottom:14px;}
+.field label{display:block; font-size:12px; color:var(--text-dim); margin-bottom:5px; text-transform:uppercase; letter-spacing:.08em;}
+.field input, .field select, .field textarea{width:100%; padding:11px 13px; border-radius:10px; border:1px solid var(--line-soft);
+  background:#0e0a1e; color:var(--text); font-size:14.5px; font-family:inherit;}
+.field textarea{resize:vertical; min-height:70px;}
+.row{display:flex; gap:10px; flex-wrap:wrap;}
+.btn{border:1px solid var(--line-soft); background:var(--panel); color:var(--text); padding:11px 18px; border-radius:11px;
+  cursor:pointer; font-size:14px; font-weight:600; transition:.2s;}
+.btn:hover{transform:translateY(-2px); border-color:var(--cyan); box-shadow:var(--glow-cyan);}
+.btn-primary{background:linear-gradient(120deg,var(--pink),var(--violet)); border:none; color:#fff; box-shadow:0 8px 26px -8px rgba(255,46,224,.75);}
+.btn-primary:hover{filter:brightness(1.12); box-shadow:0 10px 32px -8px rgba(255,46,224,.85), var(--glow-violet);}
+.btn-danger{background:linear-gradient(120deg,#c92e4e,#ff3d6e); color:#fff; border:none;}
+.btn-block{width:100%;}
+.btn-sm{padding:7px 12px; font-size:12.5px; border-radius:8px;}
+.pill-tab{padding:9px 16px; border-radius:99px; border:1px solid var(--line-soft); background:var(--panel);
+  color:var(--text-dim); font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap;}
+.pill-tab.active{background:linear-gradient(120deg, var(--pink), var(--violet)); color:#fff; border-color:transparent; box-shadow:var(--glow-pink);}
+.tabs{display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; margin-bottom:18px;}
+.section-title{display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 16px; flex-wrap:wrap;}
+.section-title h2{margin:0; font-size:21px;}
+.hint{font-size:12px; color:var(--text-dim); margin-top:4px;}
+.badge{padding:3px 9px; border-radius:99px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; display:inline-block;}
+.badge.ok{background:rgba(57,255,176,.15); color:var(--ok);}
+.badge.warn{background:rgba(255,225,77,.15); color:var(--warn);}
+.badge.bad{background:rgba(255,61,110,.15); color:var(--bad);}
+.toast-wrap{position:fixed; top:16px; right:16px; z-index:9999; display:flex; flex-direction:column; gap:8px;}
+.toast{background:var(--panel); border:1px solid var(--line-soft); border-radius:12px; padding:12px 16px; box-shadow:var(--shadow); font-size:13.5px; max-width:320px;}
+.toast.err{border-color:var(--bad); box-shadow:0 0 18px rgba(255,61,110,.4);}
+.role-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:30px;}
+@media(max-width:560px){.role-grid{grid-template-columns:1fr;}}
+.role-card{background:linear-gradient(160deg, var(--panel), var(--panel-2)); border:1px solid var(--line-soft); border-radius:18px;
+  padding:26px 20px; text-align:center; cursor:pointer; transition:.25s;}
+.role-card:hover{transform:translateY(-6px); border-color:var(--cyan); box-shadow:var(--shadow), var(--glow-cyan);}
+.role-card .ic{font-size:32px; margin-bottom:10px; display:block;}
+.role-card b{display:block; font-family:'Orbitron',sans-serif; font-size:16px;}
+.role-card span{font-size:12px; color:var(--text-dim);}
+.hero{text-align:center; padding:40px 10px 10px;}
+.hero h1{font-size:26px;}
+.hero p{color:var(--text-dim); max-width:480px; margin:8px auto 0; font-size:14px;}
+.auth-shell{max-width:400px; margin:40px auto;}
+.back{cursor:pointer; color:var(--text-dim); font-size:13px; margin-bottom:16px; display:inline-block;}
+.back:hover{color:var(--cyan);}
+.modal-bg{position:fixed; inset:0; z-index:9998; background:rgba(0,0,0,.78); display:flex; align-items:center; justify-content:center; padding:16px;}
+.modal-card{background:var(--panel); border:1px solid var(--line-soft); border-radius:18px; padding:22px; max-width:480px; width:100%; max-height:88vh; overflow-y:auto; box-shadow:var(--shadow);}
+.modal-card h3{margin:0 0 6px;}
+
+/* ---------- Menú del cliente ---------- */
+.dish-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+@media(max-width:560px){.dish-grid{grid-template-columns:1fr;}}
+.dish-card{background:var(--panel); border:1px solid var(--line-soft); border-radius:14px; overflow:hidden; display:flex; flex-direction:column;}
+.dish-card img{width:100%; height:130px; object-fit:cover; display:block; background:#0e0a1e;}
+.dish-body{padding:12px 14px 14px; display:flex; flex-direction:column; gap:6px; flex:1;}
+.dish-body b{font-family:'Orbitron',sans-serif; font-size:14.5px;}
+.dish-desc{font-size:12px; color:var(--text-dim); line-height:1.45; flex:1;}
+.stars{color:var(--gold); font-size:13px; letter-spacing:1px;}
+.dish-foot{display:flex; align-items:center; justify-content:space-between; margin-top:4px;}
+.dish-price{font-family:'Space Mono',monospace; font-weight:700; color:var(--cyan);}
+.cart-bar{position:sticky; bottom:0; z-index:40; background:linear-gradient(0deg, rgba(8,5,15,.97), rgba(8,5,15,.85));
+  border-top:1px solid var(--line-soft); padding:12px 16px; display:flex; align-items:center; gap:14px;}
+.cart-bar b{font-family:'Orbitron',sans-serif;}
+.cart-bar .spacer{flex:1;}
+.qty-ctrl{display:flex; align-items:center; gap:8px;}
+.qty-ctrl button{width:28px; height:28px; border-radius:8px; border:1px solid var(--line-soft); background:var(--panel-2); color:var(--text); cursor:pointer;}
+
+/* ---------- Pantalla de estado (roja/verde) ---------- */
+.estado-screen{position:fixed; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px; text-align:center; padding:20px; transition:background .4s;}
+.estado-screen.libre{background:radial-gradient(circle at 50% 40%, #0b3f2c, #041b12 78%);}
+.estado-screen.ocupada{background:radial-gradient(circle at 50% 40%, #4a0d1e, #1a0308 78%);}
+.estado-screen .ic{font-size:88px; line-height:1;}
+.estado-screen h1{font-size:38px; margin:0;}
+.estado-screen p{color:rgba(255,255,255,.75); font-size:16px; margin:0; max-width:420px;}
+.estado-screen.libre h1{color:var(--ok); text-shadow:0 0 30px rgba(57,255,176,.6);}
+.estado-screen.ocupada h1{color:var(--bad); text-shadow:0 0 30px rgba(255,61,110,.6);}
 </style>
 </head>
 <body>
-
-<header>
-  <h1>Contrato de Desarrollo y Venta de Producto Digital</h1>
-  <p>Aplicación web "CashlessSAI" — Firma electrónica conforme a la Ley 527 de 1999 (Colombia)</p>
-</header>
-
-<main>
-  <div class="parties">
-    <div class="party">
-      <b>EL DESARROLLADOR</b>
-      Cashless Colombia<br>
-      Representado por Víctor Hugo López Sánchez<br>
-      C.C. 1.082.939.868 — Santa Marta, Colombia<br>
-      Tel: 319 215 3328
-    </div>
-    <div class="party">
-      <b>EL CLIENTE (COMPRADOR)</b>
-      David Felipe Urueta<br>
-      C.C. 1.123.627.295<br>
-      Kr 19B # 10-07, San Andrés Islas<br>
-      dfurueta@hotmail.com
-    </div>
-  </div>
-
-  <div class="aviso">
-    Este documento es la versión digital del contrato suscrito el 31 de agosto de 2026. Léalo completo antes de firmar. Al firmar electrónicamente, ambas partes aceptan el contenido íntegro como si se tratara de una firma manuscrita, de conformidad con la Ley 527 de 1999.
-  </div>
-
-  <div class="clausula">
-    <h2>Cláusula Primera — Objeto</h2>
-    <p>EL DESARROLLADOR se obliga a diseñar, desarrollar y entregar en producción, a favor de EL CLIENTE, una aplicación web de tipo cashless (pagos, cobros y validación sin contacto), denominada comercialmente "CashlessSAI".</p>
-
-    <h2>Cláusula Segunda — Exclusividad de uso</h2>
-    <p>EL DESARROLLADOR otorga a EL CLIENTE el derecho de uso exclusivo de la aplicación CashlessSAI para su operación comercial dentro del Departamento Archipiélago de San Andrés, Providencia y Santa Catalina, mientras el contrato esté vigente y EL CLIENTE se encuentre al día en sus obligaciones.</p>
-
-    <h2>Cláusula Tercera — Valor y forma de pago</h2>
-    <p>Valor total: <b>$1.000.000 COP</b>.</p>
-    <ul>
-      <li><b>Pago inicial (50%):</b> $500.000 COP, pagados mediante transferencia por código QR de Nequi Negocios, recibidos a satisfacción a la fecha de suscripción.</li>
-      <li><b>Pago final (50%):</b> $500.000 COP, contra entrega de la aplicación base y firma del contrato.</li>
-    </ul>
-
-    <h2>Cláusula Cuarta — Garantías y soporte</h2>
-    <ul>
-      <li><b>Garantía por errores:</b> corrección de fallas de programación tras la publicación.</li>
-      <li><b>Modificaciones:</b> cambios de código, base de datos y lógica, sin límite de tiempo hasta entrega a conformidad, valor $300.000 COP, con 3 rondas de cambios incluidas.</li>
-      <li><b>Actualizaciones de seguridad:</b> parches del sistema, base de datos y plugins.</li>
-      <li><b>Copias de seguridad:</b> resguardo periódico de la información.</li>
-      <li><b>Cambios menores:</b> ajustes de textos, imágenes o datos de contacto.</li>
-    </ul>
-
-    <h2>Cláusula Quinta — Tiempos y plazos de soporte</h2>
-    <ul>
-      <li>Garantía inicial: 1 a 3 meses (30–90 días).</li>
-      <li>Soporte mensual recurrente: horas fijas al mes (5, 10 o 20 horas).</li>
-      <li>Contratos por proyecto o llamada: cobro por tiempo exacto fuera de garantía.</li>
-    </ul>
-
-    <h2>Cláusula Sexta — Tiempos de respuesta (SLA)</h2>
-    <ul>
-      <li>Urgencias críticas (sitio caído): 2 a 4 horas.</li>
-      <li>Problemas moderados: 24 a 48 horas.</li>
-      <li>Cambios o mejoras estéticas: 3 a 7 días hábiles.</li>
-    </ul>
-
-    <h2>Cláusula Séptima — Obligaciones de EL CLIENTE</h2>
-    <ul>
-      <li>Entregar requerimientos claros y designar un responsable único del proyecto.</li>
-      <li>Facilitar accesos, material gráfico, contenido y bases de datos limpias, con permisos legales de uso.</li>
-      <li>Validar entregables y reportar fallos con evidencia durante la fase de pruebas (QA).</li>
-      <li>Firmar el acta de aceptación final, cumplir el calendario de pagos y usar los canales oficiales de soporte (cashlesscolombia@gmail.com).</li>
-    </ul>
-
-    <h2>Cláusula Octava — Dominio, accesos y credenciales</h2>
-    <p>El proyecto operará bajo el dominio https://cashlesssai.online. Las credenciales de administrador, supervisor y demás accesos técnicos serán entregados por un canal seguro y confidencial, independiente de este documento, al momento de la entrega en producción.</p>
-
-    <h2>Cláusula Novena — Propiedad intelectual</h2>
-    <p>Cancelado el valor total, los derechos de uso de CashlessSAI se ceden a EL CLIENTE en los términos de exclusividad territorial pactados. EL DESARROLLADOR conserva el derecho a reutilizar arquitectura y conocimientos técnicos genéricos fuera del territorio de exclusividad.</p>
-
-    <h2>Cláusula Décima — Confidencialidad y protección de datos</h2>
-    <p>Las partes mantendrán confidencialidad de la información técnica, comercial y financiera, y tratarán los datos personales conforme a la Ley 1581 de 2012 y el Decreto 1377 de 2013.</p>
-
-    <h2>Cláusula Undécima — Terminación</h2>
-    <p>El contrato podrá terminarse por mutuo acuerdo, por incumplimiento grave previo requerimiento escrito con 5 días hábiles de subsanación, o por las demás causales legales.</p>
-
-    <h2>Cláusula Duodécima — Solución de controversias</h2>
-    <p>Las diferencias se resolverán primero por arreglo directo y, de no ser posible, ante la jurisdicción ordinaria colombiana o un Centro de Conciliación y Arbitraje si las partes lo acuerdan por escrito.</p>
-  </div>
-
-  <div class="firma-section" id="zona-firma">
-    <h2 style="border:none;">Firma electrónica</h2>
-    <p style="font-size:.88rem; color:#4b5563;">Cada parte firma por separado, cuando le sea posible. Al guardar tu firma queda registrada en la base de datos; la otra parte puede entrar más tarde a esta misma página y firmar la suya. Cuando ambas firmas estén registradas, se podrá descargar el PDF firmado.</p>
-
-    <div id="estadoCarga" style="font-size:.85rem; color:#6b7280; margin:10px 0;">Consultando estado de las firmas…</div>
-
-    <label for="lugar">Lugar de la firma</label>
-    <input type="text" id="lugar" value="Santa Marta, Colombia">
-
-    <div class="firma-box">
-      <h3>Firma de EL DESARROLLADOR — Víctor Hugo López Sánchez</h3>
-      <canvas class="pad" id="pad1"></canvas>
-      <img id="img1" style="display:none; max-height:160px; border:1px solid var(--gris-borde); border-radius:6px; background:white;">
-      <div class="firma-actions">
-        <button class="btn-secundario" id="btnBorrar1" onclick="limpiar(1)">Borrar</button>
-        <button class="btn-primario" id="btnGuardar1" onclick="guardarFirma(1)">Guardar firma del Desarrollador</button>
-      </div>
-      <div class="estado pendiente" id="estado1">Pendiente de firma</div>
-    </div>
-
-    <div class="firma-box">
-      <h3>Firma de EL CLIENTE — David Felipe Urueta</h3>
-      <canvas class="pad" id="pad2"></canvas>
-      <img id="img2" style="display:none; max-height:160px; border:1px solid var(--gris-borde); border-radius:6px; background:white;">
-      <div class="firma-actions">
-        <button class="btn-secundario" id="btnBorrar2" onclick="limpiar(2)">Borrar</button>
-        <button class="btn-primario" id="btnGuardar2" onclick="guardarFirma(2)">Guardar firma del Cliente</button>
-      </div>
-      <div class="estado pendiente" id="estado2">Pendiente de firma</div>
-    </div>
-
-    <button class="btn-final" id="btnPdf" onclick="descargarPDF()" disabled>Descargar PDF firmado (faltan firmas)</button>
-
-    <div id="confirmacion">
-      ✅ Contrato firmado correctamente. Se ha generado el PDF con ambas firmas y la fecha/hora de aceptación.
-    </div>
-  </div>
-
-  <footer>
-    Documento generado digitalmente. La firma electrónica captada aquí tiene la validez que le otorga la Ley 527 de 1999. Este contrato es un borrador base y se recomienda revisión legal antes de su uso definitivo.
-  </footer>
-</main>
+<div id="bg-fx"></div>
+<div class="toast-wrap" id="toastWrap"></div>
+<div id="app"></div>
 
 <script>
-  // Conexión a Supabase (anon key: pensada para uso público en el navegador,
-  // protegida por las políticas RLS definidas en schema.sql)
-  const SUPABASE_URL = "https://vgcpwdjgcfjmacqfhosu.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZnY3B3ZGpnY2ZqbWFjcWZob3N1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgyMjEwMDEsImV4cCI6MjEwMzc5NzAwMX0.WCua1TVhzdk0KF-m2vxztlJ2d5WDdYYb9pelpD7GpiU";
-  const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  const CONTRATO_ID = "cashlesssai-contrato-1";
-
-  // Estado en memoria de las firmas (locales o cargadas desde la BD)
-  const firmas = { 1: null, 2: null };
-  const fechasFirma = { 1: null, 2: null };
-
-  function crearPad(canvasId) {
-    const canvas = document.getElementById(canvasId);
-    function resize() {
-      const ratio = Math.max(window.devicePixelRatio || 1, 1);
-      canvas.width = canvas.offsetWidth * ratio;
-      canvas.height = canvas.offsetHeight * ratio;
-      canvas.getContext("2d").scale(ratio, ratio);
-    }
-    window.addEventListener("resize", resize);
-    resize();
-    return new SignaturePad(canvas, { backgroundColor: "rgba(255,255,255,1)" });
-  }
-
-  const pad1 = crearPad("pad1");
-  const pad2 = crearPad("pad2");
-  const pads = { 1: pad1, 2: pad2 };
-
-  function limpiar(n) {
-    pads[n].clear();
-    document.getElementById("estado" + n).textContent = "Pendiente de firma";
-    document.getElementById("estado" + n).className = "estado pendiente";
-  }
-
-  [ [pad1, 1], [pad2, 2] ].forEach(([pad, n]) => {
-    pad.addEventListener("endStroke", () => {
-      const el = document.getElementById("estado" + n);
-      if (!pad.isEmpty()) {
-        el.textContent = "Trazo listo — pulsa \"Guardar firma\" para confirmar";
-        el.className = "estado pendiente";
-      }
-    });
-  });
-
-  // Bloquea visualmente el recuadro de una parte que ya firmó
-  function marcarFirmado(n, dataUrl, fechaIso) {
-    firmas[n] = dataUrl;
-    fechasFirma[n] = fechaIso;
-    document.getElementById("pad" + n).style.display = "none";
-    const img = document.getElementById("img" + n);
-    img.src = dataUrl;
-    img.style.display = "block";
-    document.getElementById("btnGuardar" + n).style.display = "none";
-    document.getElementById("btnBorrar" + n).style.display = "none";
-    const fechaTexto = fechaIso ? new Date(fechaIso).toLocaleString("es-CO", { dateStyle: "long", timeStyle: "short" }) : "";
-    const el = document.getElementById("estado" + n);
-    el.textContent = "Firmado ✓" + (fechaTexto ? " el " + fechaTexto : "");
-    el.className = "estado ok";
-  }
-
-  function actualizarBotonPdf() {
-    const btn = document.getElementById("btnPdf");
-    if (firmas[1] && firmas[2]) {
-      btn.disabled = false;
-      btn.textContent = "Descargar PDF firmado";
-    } else {
-      btn.disabled = true;
-      const falta = !firmas[1] && !firmas[2] ? "faltan ambas firmas" : (!firmas[1] ? "falta la firma del Desarrollador" : "falta la firma del Cliente");
-      btn.textContent = "Descargar PDF firmado (" + falta + ")";
-    }
-  }
-
-  // Al cargar la página, consultar si ya existe el registro y qué firmas tiene
-  async function cargarEstado() {
-    const estadoCarga = document.getElementById("estadoCarga");
-    try {
-      const { data, error } = await supabaseClient
-        .from("contrato_firmas")
-        .select("*")
-        .eq("contrato_id", CONTRATO_ID)
-        .maybeSingle();
-
-      if (error) throw error;
-
-      if (data) {
-        if (data.lugar_firma) document.getElementById("lugar").value = data.lugar_firma;
-        if (data.desarrollador_firma_png) marcarFirmado(1, data.desarrollador_firma_png, data.desarrollador_firmado_en);
-        if (data.cliente_firma_png) marcarFirmado(2, data.cliente_firma_png, data.cliente_firmado_en);
-        estadoCarga.textContent = (data.desarrollador_firma_png && data.cliente_firma_png)
-          ? "Ambas partes ya firmaron este contrato."
-          : "Estado actual cargado. Puedes firmar la parte que falte.";
-      } else {
-        estadoCarga.textContent = "Aún no hay firmas registradas para este contrato.";
-      }
-    } catch (e) {
-      estadoCarga.textContent = "No se pudo consultar el estado de las firmas (" + (e.message || "error de conexión") + "). Puedes firmar de todas formas e intentar guardar.";
-    }
-    actualizarBotonPdf();
-  }
-  cargarEstado();
-
-  async function guardarFirma(n) {
-    const pad = pads[n];
-    if (pad.isEmpty()) {
-      alert("Primero dibuja la firma en el recuadro.");
-      return;
-    }
-    const btn = document.getElementById("btnGuardar" + n);
-    btn.disabled = true;
-    btn.textContent = "Guardando...";
-
-    const lugar = document.getElementById("lugar").value || "Santa Marta, Colombia";
-    const dataUrl = pad.toDataURL("image/png");
-    const ahoraIso = new Date().toISOString();
-
-    const campo = n === 1
-      ? { desarrollador_firma_png: dataUrl, desarrollador_firmado_en: ahoraIso }
-      : { cliente_firma_png: dataUrl, cliente_firmado_en: ahoraIso };
-
-    try {
-      const { error } = await supabaseClient
-        .from("contrato_firmas")
-        .upsert(
-          { contrato_id: CONTRATO_ID, contrato_nombre: "Contrato CashlessSAI", lugar_firma: lugar, user_agent: navigator.userAgent, ...campo },
-          { onConflict: "contrato_id" }
-        );
-      if (error) throw error;
-
-      marcarFirmado(n, dataUrl, ahoraIso);
-      actualizarBotonPdf();
-    } catch (e) {
-      alert("No se pudo guardar la firma: " + (e.message || "error de conexión") + ". Intenta de nuevo.");
-      btn.disabled = false;
-      btn.textContent = n === 1 ? "Guardar firma del Desarrollador" : "Guardar firma del Cliente";
-    }
-  }
-
-  function descargarPDF() {
-    if (!firmas[1] || !firmas[2]) return;
-    const lugar = document.getElementById("lugar").value || "Santa Marta, Colombia";
-    const fechaTexto = new Date(fechasFirma[2] || fechasFirma[1]).toLocaleString("es-CO", { dateStyle: "long", timeStyle: "short" });
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit: "pt", format: "letter" });
-    const margin = 50;
-    let y = 60;
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(15);
-    doc.text("CONTRATO DE DESARROLLO Y VENTA DE PRODUCTO DIGITAL", 306, y, { align: "center" });
-    y += 18;
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "italic");
-    doc.text('Aplicación web "CashlessSAI" — Registro de firma electrónica', 306, y, { align: "center" });
-    y += 30;
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10.5);
-    const lineas = [
-      "EL DESARROLLADOR: Cashless Colombia, representado por Víctor Hugo López Sánchez, C.C. 1.082.939.868.",
-      "EL CLIENTE: David Felipe Urueta, C.C. 1.123.627.295, dfurueta@hotmail.com.",
-      "",
-      "Objeto: desarrollo y entrega en producción de la aplicación web cashless \"CashlessSAI\", con",
-      "exclusividad de uso para el Departamento Archipiélago de San Andrés, Providencia y Santa Catalina.",
-      "",
-      "Valor total: $1.000.000 COP. Pago inicial del 50% ($500.000 COP) recibido vía QR Nequi Negocios.",
-      "Saldo del 50% ($500.000 COP) contra entrega de la aplicación base y firma del contrato.",
-      "",
-      "Las partes declaran haber leído y aceptado el contenido íntegro del contrato publicado en esta",
-      "página web, y firman electrónicamente en señal de aceptación, conforme a la Ley 527 de 1999.",
+/* =========================================================
+   CARGA DE LA LIBRERÍA SUPABASE, CON REINTENTO
+   Si el CDN falla (red bloqueada, sin internet, etc.) esto
+   muestra un aviso claro en vez de dejar la página en blanco.
+========================================================= */
+function loadSupabaseLib(){
+  return new Promise((resolve, reject)=>{
+    if(window.supabase){ resolve(); return; }
+    const urls = [
+      'https://unpkg.com/@supabase/supabase-js@2',
+      'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js'
     ];
-    lineas.forEach((linea) => { doc.text(linea, margin, y); y += 15; });
+    let i = 0;
+    function tryNext(){
+      if(i >= urls.length){ reject(new Error('No se pudo cargar la librería de Supabase desde ningún CDN')); return; }
+      const s = document.createElement('script');
+      s.src = urls[i++];
+      s.onload = ()=>{ window.supabase ? resolve() : tryNext(); };
+      s.onerror = tryNext;
+      document.head.appendChild(s);
+    }
+    tryNext();
+  });
+}
 
-    y += 20;
-    doc.setFont("helvetica", "bold");
-    doc.text("Lugar y fecha de la firma:", margin, y);
-    doc.setFont("helvetica", "normal");
-    doc.text(lugar + " — " + fechaTexto, margin + 150, y);
-    y += 40;
+loadSupabaseLib().then(initApp).catch(err=>{
+  document.getElementById('app').innerHTML = `<main style="padding-top:60px;">
+    <div class="card" style="max-width:520px;margin:0 auto;text-align:center;">
+      <h2 style="margin-top:0;">No se pudo cargar la app</h2>
+      <p class="hint">No fue posible descargar la librería de Supabase (revisa tu conexión a internet o si tu red bloquea unpkg.com / jsdelivr.net) y la página no puede continuar.</p>
+      <p class="hint">Detalle técnico: ${err.message}</p>
+      <button class="btn btn-primary" onclick="location.reload()">Reintentar</button>
+    </div>
+  </main>`;
+});
 
-    const imgW = 200, imgH = 70;
-    doc.setFont("helvetica", "bold");
-    doc.text("EL DESARROLLADOR", margin, y);
-    doc.text("EL CLIENTE", margin + 300, y);
-    y += 10;
-    doc.addImage(firmas[1], "PNG", margin, y, imgW, imgH);
-    doc.addImage(firmas[2], "PNG", margin + 300, y, imgW, imgH);
-    y += imgH + 15;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9.5);
-    doc.text("Víctor Hugo López Sánchez — C.C. 1.082.939.868", margin, y);
-    doc.text("David Felipe Urueta — C.C. 1.123.627.295", margin + 300, y);
+function initApp(){
+/* =========================================================
+   CONFIG — usa el mismo proyecto Supabase; agrega las tablas
+   nuevas con supabase-schema.sql antes de usar esta app.
+========================================================= */
+const SUPA_URL = 'https://ukmmrbjmeumjkxdblmgc.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVrbW1yYmptZXVtamt4ZGJsbWdjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcxODA4ODQsImV4cCI6MjEwMjc1Njg4NH0.mUue0VEvDTsW8dJSdumWnpzkO68vd9Fz9QMSCUJUaHQ';
+const SUPERADMIN_PASSWORD = '1234'; // cámbiala aquí
+const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+const EDGE = SUPA_URL + '/functions/v1';
 
-    doc.save("Contrato_CashlessSAI_Firmado.pdf");
+/* =========================================================
+   UTILIDADES
+========================================================= */
+function toast(msg, err){
+  const wrap = document.getElementById('toastWrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (err?' err':'');
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(()=>el.remove(), 4200);
+}
+function escapeHtml(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n){ return '$'+Math.round(Number(n)||0).toLocaleString('es-CO'); }
+function slugify(s){ return String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,''); }
+function randToken(){ return Math.random().toString(36).slice(2,8)+Math.random().toString(36).slice(2,8); }
+function stars(n){ n=Math.round(Number(n)||0); return '★'.repeat(n)+'☆'.repeat(Math.max(0,5-n)); }
+function speak(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'es-CO'; u.rate = 1; u.pitch = 1;
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+const _libPromises = {};
+function loadScriptOnce(src){
+  if(_libPromises[src]) return _libPromises[src];
+  _libPromises[src] = new Promise((resolve,reject)=>{
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = ()=>{delete _libPromises[src]; reject(new Error('No se pudo cargar '+src));};
+    document.head.appendChild(s);
+  });
+  return _libPromises[src];
+}
+const loadQRCodeLib = ()=>loadScriptOnce('https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js');
 
-    document.getElementById("confirmacion").classList.add("show");
+function qp(){ return new URLSearchParams(location.search); }
+function buildUrl(view, params){
+  const u = new URL(location.href.split('?')[0]);
+  u.searchParams.set('view', view);
+  Object.entries(params||{}).forEach(([k,v])=>u.searchParams.set(k,v));
+  return u.toString();
+}
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+function topbarHtml(title, sub, showLogout, onLogout){
+  return `<div class="topbar">
+    <div class="brand"><b>${escapeHtml(title)}</b><span>${escapeHtml(sub||'')}</span></div>
+    <div class="spacer"></div>
+    ${showLogout? `<button class="btn-logout" id="btnLogoutTop">Salir</button>`:''}
+  </div>`;
+}
+function wireLogout(fn){ const b=document.getElementById('btnLogoutTop'); if(b) b.onclick=fn; }
+
+/* =========================================================
+   LANDING
+========================================================= */
+function renderLanding(){
+  const app = document.getElementById('app');
+  app.innerHTML = `
+    ${topbarHtml('Punto de Pago', 'Restaurantes')}
+    <main>
+      <div class="hero">
+        <h1>Punto de Pago para Restaurantes</h1>
+        <p>Administra tus restaurantes, mesas y menús, o pon a punto la pantalla de mesa con menú y pago.</p>
+      </div>
+      <div class="role-grid" style="max-width:520px;margin-left:auto;margin-right:auto;">
+        <div class="role-card" id="goSuper"><span class="ic">🛠️</span><b>Superadmin</b><span>Crear restaurantes y mesas</span></div>
+        <div class="role-card" id="goAdmin"><span class="ic">🍽️</span><b>Panel del restaurante</b><span>Menú, mesas y pedidos</span></div>
+      </div>
+    </main>`;
+  document.getElementById('goSuper').onclick = ()=>location.href = buildUrl('superadmin');
+  document.getElementById('goAdmin').onclick = ()=>location.href = buildUrl('admin');
+}
+
+/* =========================================================
+   SUPERADMIN
+========================================================= */
+const SuperAdmin = {
+  restaurantes: [],
+  async init(){
+    if(sessionStorage.getItem('pp_super_ok') !== '1'){ this.renderLogin(); return; }
+    await this.renderPanel();
+  },
+  renderLogin(){
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      ${topbarHtml('Punto de Pago','Superadmin')}
+      <main>
+        <a class="back" id="back">← Volver</a>
+        <div class="card auth-shell">
+          <h2 style="margin-top:0;">Acceso Superadmin</h2>
+          <div class="field"><label>Contraseña</label><input type="password" id="pw"></div>
+          <button class="btn btn-primary btn-block" id="go">Entrar</button>
+        </div>
+      </main>`;
+    document.getElementById('back').onclick = renderLanding;
+    document.getElementById('go').onclick = ()=>{
+      if(document.getElementById('pw').value === SUPERADMIN_PASSWORD){
+        sessionStorage.setItem('pp_super_ok','1'); this.renderPanel();
+      }else toast('Contraseña incorrecta', true);
+    };
+  },
+  async renderPanel(){
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      ${topbarHtml('Punto de Pago','Superadmin', true)}
+      <main>
+        <div class="section-title"><h2>Restaurantes</h2>
+          <button class="btn btn-primary" id="nuevoRest">+ Nuevo restaurante</button>
+        </div>
+        <div id="listaRest" class="grid-2"></div>
+      </main>`;
+    wireLogout(()=>{ sessionStorage.removeItem('pp_super_ok'); renderLanding(); });
+    document.getElementById('nuevoRest').onclick = ()=>this.modalRestaurante(null);
+    await this.cargarRestaurantes();
+  },
+  async cargarRestaurantes(){
+    const {data, error} = await sb.from('restaurantes').select('*').order('created_at',{ascending:false});
+    if(error){ toast('Error cargando restaurantes: '+error.message, true); return; }
+    this.restaurantes = data||[];
+    const cont = document.getElementById('listaRest');
+    if(!this.restaurantes.length){ cont.innerHTML = `<div class="card">Aún no hay restaurantes. Crea el primero.</div>`; return; }
+    cont.innerHTML = this.restaurantes.map(r=>`
+      <div class="card">
+        <div class="section-title" style="margin-bottom:8px;">
+          <h2 style="font-size:17px;">${escapeHtml(r.nombre)}</h2>
+          <span class="badge ${r.activo?'ok':'bad'}">${r.activo?'Activo':'Inactivo'}</span>
+        </div>
+        <div class="hint">Slug: <b class="mono">${escapeHtml(r.slug)}</b> · Bold: ${r.bold_api_key? '✅ configurado':'⚠️ falta llave'}</div>
+        <div class="row" style="margin-top:14px;">
+          <button class="btn btn-sm" data-edit="${r.id}">Editar / Bold</button>
+          <button class="btn btn-sm" data-mesas="${r.id}">Mesas</button>
+        </div>
+      </div>`).join('');
+    cont.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>this.modalRestaurante(this.restaurantes.find(r=>r.id===b.dataset.edit)));
+    cont.querySelectorAll('[data-mesas]').forEach(b=>b.onclick=()=>this.renderMesas(this.restaurantes.find(r=>r.id===b.dataset.mesas)));
+  },
+  modalRestaurante(r){
+    const bg = document.createElement('div'); bg.className='modal-bg';
+    bg.innerHTML = `<div class="modal-card">
+      <h3>${r?'Editar restaurante':'Nuevo restaurante'}</h3>
+      <div class="field"><label>Nombre</label><input id="mNombre" value="${escapeHtml(r?.nombre||'')}"></div>
+      <div class="field"><label>Slug (para la URL, sin espacios)</label><input id="mSlug" value="${escapeHtml(r?.slug||'')}"></div>
+      <div class="field"><label>WhatsApp (opcional)</label><input id="mWa" value="${escapeHtml(r?.whatsapp||'')}"></div>
+      <div class="field"><label>Contraseña del panel de este restaurante</label><input id="mPw" value="${escapeHtml(r?.password_admin||'1234')}"></div>
+      <div class="field"><label>URL imagen QR de transferencias</label><input id="mQr" value="${escapeHtml(r?.qr_transferencia_url||'')}"></div>
+      <div class="field"><label>Bold · Llave de identidad (pública)</label><input id="mBoldApi" value="${escapeHtml(r?.bold_api_key||'')}"></div>
+      <div class="field"><label>Bold · Llave secreta (se guarda cifrada, nunca se muestra)</label><input id="mBoldSecret" type="password" placeholder="${r?'dejar en blanco para no cambiarla':'pega aquí la llave secreta'}"></div>
+      <div class="field"><label class="chk" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="mActivo" ${r?.activo!==false?'checked':''}> Restaurante activo</label></div>
+      <div class="row">
+        <button class="btn btn-primary" id="mGuardar" style="flex:1;">Guardar</button>
+        <button class="btn" id="mCancelar">Cancelar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(bg);
+    document.getElementById('mCancelar').onclick = ()=>bg.remove();
+    document.getElementById('mNombre').oninput = (e)=>{ if(!r) document.getElementById('mSlug').value = slugify(e.target.value); };
+    document.getElementById('mGuardar').onclick = async ()=>{
+      const payload = {
+        nombre: document.getElementById('mNombre').value.trim(),
+        slug: slugify(document.getElementById('mSlug').value.trim()),
+        whatsapp: document.getElementById('mWa').value.trim(),
+        password_admin: document.getElementById('mPw').value.trim()||'1234',
+        qr_transferencia_url: document.getElementById('mQr').value.trim(),
+        bold_api_key: document.getElementById('mBoldApi').value.trim(),
+        activo: document.getElementById('mActivo').checked
+      };
+      if(!payload.nombre || !payload.slug){ toast('Nombre y slug son obligatorios', true); return; }
+      let restId = r?.id;
+      if(r){
+        const {error} = await sb.from('restaurantes').update(payload).eq('id', r.id);
+        if(error){ toast('Error guardando: '+error.message, true); return; }
+      }else{
+        const {data, error} = await sb.from('restaurantes').insert(payload).select('id').single();
+        if(error){ toast('Error creando: '+error.message, true); return; }
+        restId = data.id;
+      }
+      const secretVal = document.getElementById('mBoldSecret').value.trim();
+      if(secretVal){
+        try{
+          const res = await fetch(EDGE+'/guardar-bold-secreto', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPA_KEY,'apikey':SUPA_KEY}, body: JSON.stringify({restaurante_id: restId, bold_secret_key: secretVal})});
+          const d = await res.json().catch(()=>({}));
+          if(!res.ok || d.error) toast('Restaurante guardado, pero falló guardar la llave secreta de Bold (¿ya desplegaste la función guardar-bold-secreto?): '+(d.error||''), true);
+        }catch(e){ toast('Restaurante guardado, pero no se pudo contactar la función guardar-bold-secreto todavía.', true); }
+      }
+      toast('Restaurante guardado');
+      bg.remove();
+      await this.cargarRestaurantes();
+    };
+  },
+  async renderMesas(r){
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      ${topbarHtml('Punto de Pago', r.nombre, true)}
+      <main>
+        <a class="back" id="back">← Restaurantes</a>
+        <div class="section-title"><h2>Mesas de ${escapeHtml(r.nombre)}</h2>
+          <button class="btn btn-primary" id="nuevaMesa">+ Nueva mesa</button>
+        </div>
+        <div id="listaMesas" class="grid-2"></div>
+      </main>`;
+    wireLogout(()=>{ sessionStorage.removeItem('pp_super_ok'); renderLanding(); });
+    document.getElementById('back').onclick = ()=>this.renderPanel();
+    document.getElementById('nuevaMesa').onclick = async ()=>{
+      const nombre = prompt('Nombre de la mesa (ej: Mesa 5)');
+      if(!nombre) return;
+      const {error} = await sb.from('mesas').insert({restaurante_id:r.id, nombre, token: randToken()});
+      if(error){ toast('Error: '+error.message, true); return; }
+      await cargar();
+    };
+    const cargar = async ()=>{
+      const {data, error} = await sb.from('mesas').select('*').eq('restaurante_id', r.id).order('nombre');
+      if(error){ toast(error.message, true); return; }
+      const cont = document.getElementById('listaMesas');
+      if(!data.length){ cont.innerHTML = `<div class="card">Aún no hay mesas.</div>`; return; }
+      cont.innerHTML = data.map(m=>{
+        const urlMenu = buildUrl('menu',{r:r.slug, m:m.token});
+        const urlEstado = buildUrl('estado',{r:r.slug, m:m.token});
+        return `<div class="card">
+          <div class="section-title" style="margin-bottom:6px;"><h2 style="font-size:16px;">${escapeHtml(m.nombre)}</h2>
+          <span class="badge ${m.estado==='libre'?'ok':'bad'}">${m.estado==='libre'?'Libre':'Ocupada'}</span></div>
+          <div class="hint">Pantalla de menú (para la mesa):</div>
+          <div class="row"><input readonly value="${urlMenu}" style="flex:1;min-width:160px;padding:8px 10px;border-radius:8px;border:1px solid var(--line-soft);background:#0e0a1e;color:var(--text);font-size:11.5px;"><button class="btn btn-sm" data-copy="${urlMenu}">Copiar</button></div>
+          <div class="hint" style="margin-top:8px;">Pantalla de estado (roja/verde):</div>
+          <div class="row"><input readonly value="${urlEstado}" style="flex:1;min-width:160px;padding:8px 10px;border-radius:8px;border:1px solid var(--line-soft);background:#0e0a1e;color:var(--text);font-size:11.5px;"><button class="btn btn-sm" data-copy="${urlEstado}">Copiar</button></div>
+          <div class="row" style="margin-top:12px;">
+            <button class="btn btn-sm" data-qr="${urlMenu}" data-name="${escapeHtml(m.nombre)}">Ver QR del menú</button>
+            <button class="btn btn-sm" data-libre="${m.id}">Marcar libre</button>
+            <button class="btn btn-sm btn-danger" data-del="${m.id}">Eliminar</button>
+          </div>
+        </div>`;
+      }).join('');
+      cont.querySelectorAll('[data-copy]').forEach(b=>b.onclick=()=>{navigator.clipboard.writeText(b.dataset.copy); toast('Enlace copiado');});
+      cont.querySelectorAll('[data-libre]').forEach(b=>b.onclick=async()=>{ await sb.from('mesas').update({estado:'libre'}).eq('id', b.dataset.libre); await cargar(); });
+      cont.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{ if(!confirm('¿Eliminar esta mesa?')) return; await sb.from('mesas').delete().eq('id', b.dataset.del); await cargar(); });
+      cont.querySelectorAll('[data-qr]').forEach(b=>b.onclick=async()=>{
+        await loadQRCodeLib();
+        const bgm = document.createElement('div'); bgm.className='modal-bg';
+        bgm.innerHTML = `<div class="modal-card" style="text-align:center;"><h3>${b.dataset.name}</h3><div id="qrBox" style="background:#fff;padding:14px;border-radius:12px;display:inline-block;margin:10px 0;"></div><p class="hint">Imprime este QR y ponlo en la mesa.</p><button class="btn" id="qrClose">Cerrar</button></div>`;
+        document.body.appendChild(bgm);
+        new QRCode(bgm.querySelector('#qrBox'), {text:b.dataset.qr, width:220, height:220});
+        bgm.querySelector('#qrClose').onclick = ()=>bgm.remove();
+      });
+    };
+    await cargar();
   }
-</script>
+};
 
+/* =========================================================
+   ADMIN DEL RESTAURANTE
+========================================================= */
+const RestAdmin = {
+  restaurante: null,
+  catActiva: null,
+  async init(){
+    const saved = sessionStorage.getItem('pp_admin_rest');
+    if(saved){
+      const {data} = await sb.from('restaurantes').select('*').eq('id', saved).single();
+      if(data){ this.restaurante = data; await this.renderPanel(); return; }
+    }
+    this.renderLogin();
+  },
+  renderLogin(){
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      ${topbarHtml('Punto de Pago','Panel del restaurante')}
+      <main>
+        <a class="back" id="back">← Volver</a>
+        <div class="card auth-shell">
+          <h2 style="margin-top:0;">Acceso del restaurante</h2>
+          <div class="field"><label>Slug del restaurante</label><input id="slug"></div>
+          <div class="field"><label>Contraseña</label><input type="password" id="pw"></div>
+          <button class="btn btn-primary btn-block" id="go">Entrar</button>
+        </div>
+      </main>`;
+    document.getElementById('back').onclick = renderLanding;
+    document.getElementById('go').onclick = async ()=>{
+      const slug = slugify(document.getElementById('slug').value.trim());
+      const pw = document.getElementById('pw').value;
+      const {data, error} = await sb.from('restaurantes').select('*').eq('slug', slug).single();
+      if(error || !data || data.password_admin !== pw){ toast('Slug o contraseña incorrectos', true); return; }
+      this.restaurante = data;
+      sessionStorage.setItem('pp_admin_rest', data.id);
+      await this.renderPanel();
+    };
+  },
+  async renderPanel(){
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      ${topbarHtml(this.restaurante.nombre, 'Panel del restaurante', true)}
+      <main>
+        <div class="tabs">
+          <div class="pill-tab active" data-tab="menu">Menú</div>
+          <div class="pill-tab" data-tab="mesas">Mesas</div>
+          <div class="pill-tab" data-tab="pedidos">Pedidos</div>
+        </div>
+        <div id="tabBody"></div>
+      </main>`;
+    wireLogout(()=>{ sessionStorage.removeItem('pp_admin_rest'); renderLanding(); });
+    app.querySelectorAll('.pill-tab').forEach(t=>t.onclick=()=>{
+      app.querySelectorAll('.pill-tab').forEach(x=>x.classList.remove('active'));
+      t.classList.add('active');
+      this.renderTab(t.dataset.tab);
+    });
+    this.renderTab('menu');
+  },
+  async renderTab(tab){
+    if(tab==='menu') return this.renderMenu();
+    if(tab==='mesas') return this.renderMesas();
+    if(tab==='pedidos') return this.renderPedidos();
+  },
+  async renderMenu(){
+    const body = document.getElementById('tabBody');
+    const {data:cats} = await sb.from('categorias_menu').select('*').eq('restaurante_id', this.restaurante.id).order('orden');
+    if(!this.catActiva && cats?.length) this.catActiva = cats[0].id;
+    body.innerHTML = `
+      <div class="section-title"><h2>Categorías</h2><button class="btn btn-sm btn-primary" id="nuevaCat">+ Categoría</button></div>
+      <div class="tabs" id="catTabs">${(cats||[]).map(c=>`<div class="pill-tab ${c.id===this.catActiva?'active':''}" data-cat="${c.id}">${escapeHtml(c.nombre)}</div>`).join('') || '<span class="hint">Crea tu primera categoría (ej: Entradas, Fuertes, Bebidas)</span>'}</div>
+      <div class="section-title"><h2 style="font-size:16px;">Platos</h2><button class="btn btn-sm btn-primary" id="nuevoPlato" ${!this.catActiva?'disabled':''}>+ Plato</button></div>
+      <div id="listaPlatos" class="grid-2"></div>`;
+    document.getElementById('nuevaCat').onclick = async ()=>{
+      const nombre = prompt('Nombre de la categoría (ej: Entradas)');
+      if(!nombre) return;
+      const {error} = await sb.from('categorias_menu').insert({restaurante_id:this.restaurante.id, nombre, orden:(cats?.length||0)});
+      if(error){ toast(error.message, true); return; }
+      await this.renderMenu();
+    };
+    body.querySelectorAll('[data-cat]').forEach(t=>t.onclick=()=>{ this.catActiva=t.dataset.cat; this.renderMenu(); });
+    document.getElementById('nuevoPlato').onclick = ()=>this.modalPlato(null);
+    if(this.catActiva) await this.cargarPlatos();
+  },
+  async cargarPlatos(){
+    const {data, error} = await sb.from('platos').select('*').eq('categoria_id', this.catActiva).order('orden');
+    if(error){ toast(error.message, true); return; }
+    const cont = document.getElementById('listaPlatos');
+    if(!data.length){ cont.innerHTML = `<div class="card">Sin platos en esta categoría.</div>`; return; }
+    cont.innerHTML = data.map(p=>`
+      <div class="card" style="display:flex;gap:12px;">
+        ${p.imagen_url?`<img src="${escapeHtml(p.imagen_url)}" style="width:70px;height:70px;object-fit:cover;border-radius:10px;flex:0 0 auto;">`:''}
+        <div style="flex:1;min-width:0;">
+          <b>${escapeHtml(p.nombre)}</b> ${!p.disponible?'<span class="badge bad">Oculto</span>':''}
+          <div class="stars">${stars(p.estrellas)}</div>
+          <div class="hint">${escapeHtml(p.descripcion||'')}</div>
+          <div class="row" style="margin-top:8px;align-items:center;">
+            <b style="color:var(--cyan);font-family:'Space Mono',monospace;">${money(p.precio)}</b>
+            <button class="btn btn-sm" data-edit="${p.id}">Editar</button>
+            <button class="btn btn-sm btn-danger" data-del="${p.id}">Eliminar</button>
+          </div>
+        </div>
+      </div>`).join('');
+    cont.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>this.modalPlato(data.find(x=>x.id===b.dataset.edit)));
+    cont.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{ if(!confirm('¿Eliminar este plato?')) return; await sb.from('platos').delete().eq('id', b.dataset.del); await this.cargarPlatos(); });
+  },
+  modalPlato(p){
+    const bg = document.createElement('div'); bg.className='modal-bg';
+    bg.innerHTML = `<div class="modal-card">
+      <h3>${p?'Editar plato':'Nuevo plato'}</h3>
+      <div class="field"><label>Nombre</label><input id="pNombre" value="${escapeHtml(p?.nombre||'')}"></div>
+      <div class="field"><label>Descripción</label><textarea id="pDesc">${escapeHtml(p?.descripcion||'')}</textarea></div>
+      <div class="field"><label>Precio</label><input id="pPrecio" type="number" value="${p?.precio||0}"></div>
+      <div class="field"><label>URL de la imagen</label><input id="pImg" value="${escapeHtml(p?.imagen_url||'')}"></div>
+      <div class="field"><label>Calificación (0-5 estrellas)</label><input id="pEstrellas" type="number" min="0" max="5" value="${p?.estrellas??5}"></div>
+      <div class="field"><label class="chk" style="display:flex;align-items:center;gap:8px;"><input type="checkbox" id="pDisp" ${p?.disponible!==false?'checked':''}> Visible en el menú</label></div>
+      <div class="row">
+        <button class="btn btn-primary" id="pGuardar" style="flex:1;">Guardar</button>
+        <button class="btn" id="pCancelar">Cancelar</button>
+      </div>
+    </div>`;
+    document.body.appendChild(bg);
+    document.getElementById('pCancelar').onclick = ()=>bg.remove();
+    document.getElementById('pGuardar').onclick = async ()=>{
+      const payload = {
+        restaurante_id: this.restaurante.id,
+        categoria_id: this.catActiva,
+        nombre: document.getElementById('pNombre').value.trim(),
+        descripcion: document.getElementById('pDesc').value.trim(),
+        precio: Number(document.getElementById('pPrecio').value)||0,
+        imagen_url: document.getElementById('pImg').value.trim(),
+        estrellas: Number(document.getElementById('pEstrellas').value)||0,
+        disponible: document.getElementById('pDisp').checked
+      };
+      if(!payload.nombre){ toast('El nombre es obligatorio', true); return; }
+      const q = p? sb.from('platos').update(payload).eq('id', p.id) : sb.from('platos').insert(payload);
+      const {error} = await q;
+      if(error){ toast(error.message, true); return; }
+      bg.remove();
+      await this.cargarPlatos();
+    };
+  },
+  async renderMesas(){ await SuperAdmin.renderMesas.call(SuperAdmin, this.restaurante); // reutiliza la misma vista de mesas
+    document.getElementById('back').onclick = ()=>this.renderPanel();
+    wireLogout(()=>{ sessionStorage.removeItem('pp_admin_rest'); renderLanding(); });
+  },
+  async renderPedidos(){
+    const body = document.getElementById('tabBody');
+    body.innerHTML = `<div id="listaPedidos">Cargando...</div>`;
+    const {data, error} = await sb.from('pedidos').select('*, mesas(nombre)').eq('restaurante_id', this.restaurante.id).order('created_at',{ascending:false}).limit(60);
+    if(error){ toast(error.message, true); return; }
+    const cont = document.getElementById('listaPedidos');
+    if(!data.length){ cont.innerHTML = `<div class="card">Aún no hay pedidos.</div>`; return; }
+    cont.innerHTML = data.map(pd=>`
+      <div class="card" style="margin-bottom:12px;">
+        <div class="section-title" style="margin-bottom:6px;">
+          <h2 style="font-size:15px;">${escapeHtml(pd.mesas?.nombre||'Mesa')} · ${money(pd.total)}</h2>
+          <span class="badge ${pd.estado==='pagado'?'ok':pd.estado==='pendiente_pago'?'warn':'bad'}">${pd.estado.replace('_',' ')}</span>
+        </div>
+        <div class="hint">Método: ${pd.metodo_pago||'—'} · ${new Date(pd.created_at).toLocaleString('es-CO')}</div>
+        <div class="hint" style="margin-top:6px;">${(pd.items||[]).map(it=>`${it.cantidad}× ${escapeHtml(it.nombre)}`).join(', ')}</div>
+        ${pd.estado==='pendiente_pago' && pd.metodo_pago==='transferencia' ? `<div class="row" style="margin-top:10px;"><button class="btn btn-sm btn-primary" data-confirmar="${pd.id}" data-mesa="${pd.mesa_id}">Confirmar transferencia recibida</button></div>` : ''}
+      </div>`).join('');
+    cont.querySelectorAll('[data-confirmar]').forEach(b=>b.onclick=async()=>{
+      await sb.from('pedidos').update({estado:'pagado', confirmed_at:new Date().toISOString()}).eq('id', b.dataset.confirmar);
+      await sb.from('mesas').update({estado:'libre'}).eq('id', b.dataset.mesa);
+      toast('Pago confirmado');
+      await this.renderPedidos();
+    });
+  }
+};
+
+/* =========================================================
+   VISTA MENÚ (cliente en la mesa)
+========================================================= */
+const MenuView = {
+  restaurante:null, mesa:null, categorias:[], catActiva:null, carrito:{},
+  async init(){
+    const p = qp();
+    const slug = p.get('r'), token = p.get('m');
+    if(!slug || !token){ document.getElementById('app').innerHTML = `<main><div class="card">Enlace inválido. Pide al restaurante el enlace correcto de la mesa.</div></main>`; return; }
+    const {data:rest} = await sb.from('restaurantes').select('*').eq('slug', slug).single();
+    const {data:mesa} = await sb.from('mesas').select('*').eq('token', token).single();
+    if(!rest || !mesa || mesa.restaurante_id !== rest.id){ document.getElementById('app').innerHTML = `<main><div class="card">Mesa no encontrada.</div></main>`; return; }
+    this.restaurante = rest; this.mesa = mesa;
+    if(mesa.estado === 'libre'){ await sb.from('mesas').update({estado:'ocupada'}).eq('id', mesa.id); }
+    const {data:cats} = await sb.from('categorias_menu').select('*').eq('restaurante_id', rest.id).order('orden');
+    this.categorias = cats||[];
+    this.catActiva = this.categorias[0]?.id || null;
+    this.render();
+    this.suscribir();
+  },
+  suscribir(){
+    sb.channel('pedidos-mesa-'+this.mesa.id)
+      .on('postgres_changes', {event:'UPDATE', schema:'public', table:'pedidos', filter:'mesa_id=eq.'+this.mesa.id}, (payload)=>{
+        if(payload.new.estado === 'pagado'){ speak('Pago confirmado'); toast('¡Pago confirmado! Gracias.'); }
+      }).subscribe();
+  },
+  async render(){
+    const app = document.getElementById('app');
+    app.innerHTML = `
+      ${topbarHtml(this.restaurante.nombre, this.mesa.nombre)}
+      <main>
+        <div class="tabs" id="catTabs">${this.categorias.map(c=>`<div class="pill-tab ${c.id===this.catActiva?'active':''}" data-cat="${c.id}">${escapeHtml(c.nombre)}</div>`).join('') || '<span class="hint">El menú aún no tiene categorías.</span>'}</div>
+        <div id="dishGrid" class="dish-grid"></div>
+      </main>
+      <div class="cart-bar">
+        <b id="cartCount">0 items</b>
+        <div class="spacer"></div>
+        <b id="cartTotal">${money(0)}</b>
+        <button class="btn btn-primary" id="btnPagar">Ver pedido / Pagar</button>
+      </div>`;
+    app.querySelectorAll('[data-cat]').forEach(t=>t.onclick=()=>{ this.catActiva=t.dataset.cat; this.render(); this.renderPlatos(); });
+    document.getElementById('btnPagar').onclick = ()=>this.modalCarrito();
+    this.updateCartBar();
+    await this.renderPlatos();
+  },
+  async renderPlatos(){
+    if(!this.catActiva){ document.getElementById('dishGrid').innerHTML=''; return; }
+    const {data, error} = await sb.from('platos').select('*').eq('categoria_id', this.catActiva).eq('disponible', true).order('orden');
+    if(error){ toast(error.message, true); return; }
+    const grid = document.getElementById('dishGrid');
+    grid.innerHTML = (data||[]).map(p=>`
+      <div class="dish-card">
+        ${p.imagen_url? `<img src="${escapeHtml(p.imagen_url)}">` : ''}
+        <div class="dish-body">
+          <b>${escapeHtml(p.nombre)}</b>
+          <div class="stars">${stars(p.estrellas)}</div>
+          <div class="dish-desc">${escapeHtml(p.descripcion||'')}</div>
+          <div class="dish-foot">
+            <span class="dish-price">${money(p.precio)}</span>
+            <button class="btn btn-sm btn-primary" data-add="${p.id}">+ Agregar</button>
+          </div>
+        </div>
+      </div>`).join('') || `<div class="hint">No hay platos disponibles en esta categoría.</div>`;
+    grid.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{
+      const plato = data.find(x=>x.id===b.dataset.add);
+      if(!this.carrito[plato.id]) this.carrito[plato.id] = {plato, cantidad:0};
+      this.carrito[plato.id].cantidad++;
+      this.updateCartBar();
+      toast(plato.nombre+' agregado');
+    });
+  },
+  updateCartBar(){
+    const items = Object.values(this.carrito);
+    const count = items.reduce((a,i)=>a+i.cantidad,0);
+    const total = items.reduce((a,i)=>a+i.cantidad*Number(i.plato.precio),0);
+    document.getElementById('cartCount').textContent = count+' item'+(count===1?'':'s');
+    document.getElementById('cartTotal').textContent = money(total);
+  },
+  modalCarrito(){
+    const items = Object.values(this.carrito);
+    if(!items.length){ toast('Tu pedido está vacío', true); return; }
+    const total = items.reduce((a,i)=>a+i.cantidad*Number(i.plato.precio),0);
+    const bg = document.createElement('div'); bg.className='modal-bg';
+    bg.innerHTML = `<div class="modal-card">
+      <h3>Tu pedido</h3>
+      ${items.map(i=>`<div class="row" style="justify-content:space-between;margin-bottom:8px;">
+        <span>${escapeHtml(i.plato.nombre)}</span>
+        <div class="qty-ctrl"><button data-menos="${i.plato.id}">−</button><span>${i.cantidad}</span><button data-mas="${i.plato.id}">+</button></div>
+      </div>`).join('')}
+      <div class="row" style="justify-content:space-between;margin:14px 0;"><b>Total</b><b style="color:var(--cyan);">${money(total)}</b></div>
+      <button class="btn btn-primary btn-block" id="btnBold">💳 Pagar con Bold (tarjeta, PSE, Nequi)</button>
+      <button class="btn btn-block" id="btnQr" style="margin-top:10px;">🏦 Transferencia (QR del restaurante)</button>
+      <button class="btn btn-block" id="btnCerrar" style="margin-top:10px;">Cerrar</button>
+    </div>`;
+    document.body.appendChild(bg);
+    bg.querySelectorAll('[data-mas]').forEach(b=>b.onclick=()=>{ this.carrito[b.dataset.mas].cantidad++; bg.remove(); this.updateCartBar(); this.modalCarrito(); });
+    bg.querySelectorAll('[data-menos]').forEach(b=>b.onclick=()=>{ const it=this.carrito[b.dataset.menos]; it.cantidad--; if(it.cantidad<=0) delete this.carrito[b.dataset.menos]; bg.remove(); this.updateCartBar(); this.modalCarrito(); });
+    document.getElementById('btnCerrar').onclick = ()=>bg.remove();
+    document.getElementById('btnBold').onclick = ()=>this.pagarConBold(items, total, bg);
+    document.getElementById('btnQr').onclick = ()=>this.pagarConTransferencia(items, total, bg);
+  },
+  async pagarConBold(items, total, bg){
+    const itemsPayload = items.map(i=>({plato_id:i.plato.id, nombre:i.plato.nombre, precio:Number(i.plato.precio), cantidad:i.cantidad}));
+    try{
+      const res = await fetch(EDGE+'/bold-crear-orden-restaurante', {
+        method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+SUPA_KEY,'apikey':SUPA_KEY},
+        body: JSON.stringify({restaurante_id:this.restaurante.id, mesa_id:this.mesa.id, items:itemsPayload, total, redirection_url: location.href})
+      });
+      const data = await res.json().catch(()=>({}));
+      if(!res.ok || data.error){ toast('No se pudo iniciar el pago: '+(data.error||'error'), true); return; }
+      bg.remove();
+      this.carrito = {}; this.updateCartBar();
+      const wrap = document.createElement('div'); wrap.className='modal-bg';
+      const card = document.createElement('div'); card.className='modal-card'; card.style.textAlign='center';
+      card.innerHTML = `<h3>Pago seguro con Bold</h3><p class="hint">${escapeHtml(data.order_id)} · ${money(data.amount)}</p>`;
+      const form = document.createElement('form');
+      const s = document.createElement('script');
+      s.src = 'https://checkout.bold.co/library/boldPaymentButton.js';
+      s.setAttribute('data-bold-button','dark-L');
+      s.setAttribute('data-order-id', data.order_id);
+      s.setAttribute('data-currency', data.currency);
+      s.setAttribute('data-amount', String(data.amount));
+      s.setAttribute('data-api-key', data.api_key);
+      s.setAttribute('data-integrity-signature', data.integrity_signature);
+      s.setAttribute('data-redirection-url', data.redirection_url||'');
+      s.setAttribute('data-description', data.description||'');
+      form.appendChild(s); card.appendChild(form);
+      const cancel = document.createElement('button'); cancel.className='btn btn-block'; cancel.style.marginTop='14px'; cancel.textContent='Cancelar'; cancel.onclick=()=>wrap.remove();
+      card.appendChild(cancel); wrap.appendChild(card); document.body.appendChild(wrap);
+    }catch(err){ toast('Error iniciando el pago: '+err.message, true); }
+  },
+  async pagarConTransferencia(items, total, bg){
+    bg.remove();
+    const itemsPayload = items.map(i=>({plato_id:i.plato.id, nombre:i.plato.nombre, precio:Number(i.plato.precio), cantidad:i.cantidad}));
+    const {data:pedido, error} = await sb.from('pedidos').insert({restaurante_id:this.restaurante.id, mesa_id:this.mesa.id, items:itemsPayload, total, estado:'pendiente_pago', metodo_pago:'transferencia'}).select('id').single();
+    if(error){ toast('No se pudo registrar el pedido: '+error.message, true); return; }
+    const wrap = document.createElement('div'); wrap.className='modal-bg';
+    wrap.innerHTML = `<div class="modal-card" style="text-align:center;">
+      <h3>Transferencia</h3>
+      ${this.restaurante.qr_transferencia_url? `<img src="${escapeHtml(this.restaurante.qr_transferencia_url)}" style="width:220px;height:220px;object-fit:contain;background:#fff;border-radius:12px;padding:10px;margin:10px 0;">` : '<p class="hint">Este restaurante aún no ha cargado su QR de transferencias.</p>'}
+      <p class="hint">Escanea el QR, transfiere ${money(total)} y avísale al mesero.</p>
+      <button class="btn btn-primary btn-block" id="notificar">Ya transferí, notificar al mesero</button>
+      <button class="btn btn-block" id="cerrarT" style="margin-top:10px;">Cerrar</button>
+    </div>`;
+    document.body.appendChild(wrap);
+    this.carrito = {}; this.updateCartBar();
+    document.getElementById('cerrarT').onclick = ()=>wrap.remove();
+    document.getElementById('notificar').onclick = ()=>{ toast('El mesero fue notificado, gracias.'); wrap.remove(); };
+  }
+};
+
+/* =========================================================
+   VISTA ESTADO (pantalla roja/verde de la mesa)
+========================================================= */
+const EstadoView = {
+  restaurante:null, mesa:null,
+  async init(){
+    const p = qp();
+    const slug = p.get('r'), token = p.get('m');
+    const {data:rest} = await sb.from('restaurantes').select('*').eq('slug', slug).single();
+    const {data:mesa} = await sb.from('mesas').select('*').eq('token', token).single();
+    if(!rest || !mesa){ document.getElementById('app').innerHTML = `<main><div class="card">Mesa no encontrada.</div></main>`; return; }
+    this.restaurante = rest; this.mesa = mesa;
+    this.render(mesa.estado);
+    this.suscribir();
+  },
+  render(estado){
+    document.getElementById('app').innerHTML = `
+      <div class="estado-screen ${estado}">
+        <span class="ic">${estado==='libre'?'✅':'⛔'}</span>
+        <h1>${estado==='libre'?'MESA DISPONIBLE':'MESA OCUPADA'}</h1>
+        <p>${estado==='libre'? this.mesa.nombre+' está libre para nuevos clientes.' : 'Pago pendiente de confirmación en '+this.mesa.nombre+'.'}</p>
+      </div>`;
+  },
+  suscribir(){
+    sb.channel('mesa-'+this.mesa.id)
+      .on('postgres_changes', {event:'UPDATE', schema:'public', table:'mesas', filter:'id=eq.'+this.mesa.id}, (payload)=>{
+        const nuevo = payload.new.estado;
+        const previo = this.mesa.estado;
+        this.mesa = payload.new;
+        this.render(nuevo);
+        if(previo==='ocupada' && nuevo==='libre') speak('Pago confirmado');
+      }).subscribe();
+  }
+};
+
+/* =========================================================
+   ROUTER
+========================================================= */
+function router(){
+  const view = qp().get('view');
+  if(view==='superadmin') return SuperAdmin.init();
+  if(view==='admin') return RestAdmin.init();
+  if(view==='menu') return MenuView.init();
+  if(view==='estado') return EstadoView.init();
+  return renderLanding();
+}
+router();
+
+} // fin de initApp()
+</script>
 </body>
 </html>
